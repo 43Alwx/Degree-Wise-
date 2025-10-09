@@ -227,9 +227,114 @@ This is a student project for MSU Denver CS students. Contributions welcome!
 
 ISC License - See LICENSE file for details
 
-## 👥 Authors
+## 👥 Development Team
 
-Built by MSU Denver CS students, for CS students.
+**Alex & Gigi** - MSU Denver CS Students
+
+### 📋 Task Division
+
+#### 🔷 Alex's Responsibilities
+
+**Backend & Core Logic:**
+- [ ] **Database Setup & Seeding**
+  - Configure PostgreSQL database
+  - Create and run Prisma migrations
+  - Seed database with MSU Denver CS course data from `data/msuDenverCS.js`
+  - Test all database relationships
+
+- [ ] **API Development**
+  - Complete `/api/courses` endpoint - fetch all courses with prerequisites
+  - Complete `/api/progress/[userId]` endpoint - calculate student progress
+  - Complete `/api/timeline/[userId]` endpoint - generate graduation scenarios
+  - Complete `/api/available-courses/[userId]` endpoint - filter eligible courses
+  - Add error handling and validation to all API routes
+
+- [ ] **Core Business Logic**
+  - Enhance `lib/prerequisiteChecker.js` - add complex prerequisite logic (AND/OR conditions)
+  - Enhance `lib/timelineCalculator.js` - improve graduation timeline algorithms
+  - Add course offering schedule logic (Fall/Spring/Summer availability)
+  - Implement GPA calculation utilities
+
+- [ ] **Testing & Documentation**
+  - Test all API endpoints with sample data
+  - Write API documentation
+  - Create Postman/Thunder Client collection
+
+#### 🔶 Gigi's Responsibilities
+
+**Frontend & User Experience:**
+- [ ] **Component Development**
+  - Create reusable UI components in `components/` folder:
+    - `ProgressCard.js` - Display progress with animated bars
+    - `CourseCard.js` - Show course details with prerequisites
+    - `TimelineCard.js` - Graduation scenario cards
+    - `TranscriptUploader.js` - File upload component
+    - `CourseSelector.js` - Manual course selection
+
+- [ ] **Dashboard Features**
+  - Connect dashboard tabs to API endpoints
+  - Implement real-time progress updates
+  - Add course filtering and search
+  - Create interactive timeline visualization
+  - Build semester-by-semester course planner
+
+- [ ] **Transcript Upload Feature**
+  - Implement photo upload functionality
+  - Add manual course entry form with validation
+  - Create course matching logic (map user input to database courses)
+  - Build course confirmation/review UI
+
+- [ ] **UI/UX Polish**
+  - Ensure responsive design for mobile/tablet
+  - Add loading states and error messages
+  - Implement smooth transitions and animations
+  - Test accessibility (keyboard navigation, screen readers)
+
+#### 🤝 Shared Tasks
+
+**Together:**
+- [ ] **User Authentication**
+  - Implement NextAuth.js for login/signup
+  - Create user profile pages
+  - Add session management
+
+- [ ] **Integration & Testing**
+  - Connect frontend components to backend APIs
+  - End-to-end testing of user flows
+  - Bug fixing and optimization
+
+- [ ] **Deployment**
+  - Deploy to Vercel
+  - Configure production database
+  - Set up environment variables
+  - Monitor and fix production issues
+
+### 📊 Current Status
+
+**✅ Completed:**
+- Project setup and configuration
+- Database schema design
+- Basic page structure
+- Core utility functions (prerequisite checker, timeline calculator)
+- Tailwind CSS styling foundation
+
+**🚧 In Progress:**
+- API endpoint implementation
+- Dashboard UI components
+- Transcript upload feature
+
+**📅 Next Sprint:**
+- Complete all API endpoints (Alex)
+- Build all UI components (Gigi)
+- Integrate frontend with backend
+- User authentication setup
+
+### 🗓️ Development Timeline
+
+**Week 1-2:** Backend & API Development (Alex) + Component Library (Gigi)
+**Week 3-4:** Frontend Integration + Transcript Upload Feature
+**Week 5:** User Authentication & Testing
+**Week 6:** Deployment & Polish
 
 ## 🙏 Acknowledgments
 
@@ -240,3 +345,4 @@ Built by MSU Denver CS students, for CS students.
 ---
 
 **CodePath** - Your Smart Graduation Planner 🎓
+*Built by Alex & Gigi*
