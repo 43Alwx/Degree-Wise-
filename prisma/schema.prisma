@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  completedCourses CompletedCourse[]
+  timelines        Timeline[]
+}
+
+model Course {
+  id            String   @id @default(cuid())
+  code          String   @unique // e.g., "CS 1050"
+  name          String   // e.g., "Computer Science I"
+  credits       Int      @default(3)
+  description   String?
+  offeredFall   Boolean  @default(true)
+  offeredSpring Boolean  @default(true)
+  offeredSummer Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  prerequisites     Prerequisite[] @relation("CoursePrerequisites")
+  prerequisiteFor   Prerequisite[] @relation("PrerequisiteFor")
+  completedCourses  CompletedCourse[]
+  requirementCourses RequirementCourse[]
+
+  @@index([code])
+}
+
+model Prerequisite {
+  id           String @id @default(cuid())
+  courseId     String
+  prerequisiteId String
+
+  course       Course @relation("CoursePrerequisites", fields: [courseId], references: [id], onDelete: Cascade)
+  prerequisite Course @relation("PrerequisiteFor", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, prerequisiteId])
+}
+
+model CompletedCourse {
+  id         String   @id @default(cuid())
+  userId     String
+  courseId   String
+  semester   String   // e.g., "Fall 2023"
+  grade      String?  // e.g., "A", "B+", etc.
+  createdAt  DateTime @default(now())
+
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+}
+
+model Requirement {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Core CS Courses"
+  description String?
+  type        String   // e.g., "CORE", "ELECTIVE", "GENERAL_ED"
+  minCredits  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses     RequirementCourse[]
+}
+
+model RequirementCourse {
+  id            String @id @default(cuid())
+  requirementId String
+  courseId      String
+
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  course        Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([requirementId, courseId])
+}
+
+model Timeline {
+  id                String   @id @default(cuid())
+  userId            String
+  name              String   // e.g., "4 Courses Per Semester"
+  coursesPerSemester Int     // 1-4
+  graduationDate    String   // e.g., "Spring 2026"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

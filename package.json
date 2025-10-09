@@ -1,0 +1,38 @@
+{
+  "name": "degree-wise",
+  "version": "1.0.0",
+  "description": "Smart graduation planner for Computer Science students at MSU Denver",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/43Alwx/360.git"
+  },
+  "keywords": [
+    "graduation",
+    "planner",
+    "cs",
+    "msu-denver"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/43Alwx/360/issues"
+  },
+  "homepage": "https://github.com/43Alwx/360#readme",
+  "dependencies": {
+    "@prisma/client": "^6.17.0",
+    "@tailwindcss/postcss": "^4.1.14",
+    "autoprefixer": "^10.4.21",
+    "next": "^15.5.4",
+    "postcss": "^8.5.6",
+    "prisma": "^6.17.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.14"
+  }
+}
