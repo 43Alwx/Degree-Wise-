@@ -22,6 +22,9 @@ export default function Dashboard() {
               <h1 className="text-2xl font-display text-primary">CodePath</h1>
             </Link>
             <nav className="flex gap-6 items-center">
+              <Link href="/courses" className="text-primary hover:text-accent transition-colors">
+                All Courses
+              </Link>
               <span className="text-primary font-sans">Welcome, Student!</span>
               <button className="text-primary hover:text-accent transition-colors">Sign Out</button>
             </nav>

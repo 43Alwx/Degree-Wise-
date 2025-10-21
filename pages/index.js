@@ -20,6 +20,7 @@ export default function Home() {
             <h1 className="text-2xl font-display text-primary">Degree Wise</h1>
           </div>
           <nav className="flex gap-6">
+            <Link href="/courses" className="text-primary hover:text-accent transition-colors">Courses</Link>
             <Link href="#features" className="text-primary hover:text-accent transition-colors">Features</Link>
             <Link href="#how-it-works" className="text-primary hover:text-accent transition-colors">How It Works</Link>
             <Link href="#about" className="text-primary hover:text-accent transition-colors">About</Link>
