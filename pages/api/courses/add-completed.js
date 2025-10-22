@@ -6,8 +6,9 @@ import {
   validateCompletedCourse,
   validateCourseExists
 } from '../../../lib/courseValidator'
+import { withSecurity, isValidUserId, secureLog, getSafeErrorResponse } from '../../../lib/security'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { userId, courses } = req.body
@@ -15,6 +16,11 @@ export default async function handler(req, res) {
       // Validate request
       if (!userId) {
         return res.status(400).json({ error: 'userId is required' })
+      }
+
+      // Validate userId format
+      if (!isValidUserId(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID format' })
       }
 
       if (!courses || !Array.isArray(courses) || courses.length === 0) {
@@ -112,13 +118,19 @@ export default async function handler(req, res) {
       })
 
     } catch (error) {
-      console.error('Error adding completed courses:', error)
-      res.status(500).json({
-        error: 'Failed to add completed courses',
-        message: error.message
-      })
+      secureLog(error, { userId, action: 'add_completed_courses' })
+      res.status(500).json(getSafeErrorResponse(error, 'Failed to add completed courses'))
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' })
   }
 }
+
+// Export with security middleware
+export default withSecurity(handler, {
+  rateLimit: true,
+  sanitization: true,
+  cors: true,
+  maxRequests: 50,  // 50 requests per minute (stricter for POST)
+  windowMs: 60000
+})
