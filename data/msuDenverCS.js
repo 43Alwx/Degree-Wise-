@@ -286,6 +286,7 @@ export const scienceCourseGroups = [
       {
         code: 'PHY2341',
         name: 'General Physics 2 Laboratory',
+        
         credits: 1,
         prerequisites: []
       }
