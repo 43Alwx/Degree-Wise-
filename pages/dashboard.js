@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import TranscriptUploader from '../components/TranscriptUploader'
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('progress')
@@ -190,6 +191,13 @@ function CoursesTab() {
 
 function TranscriptTab() {
   const [uploadMethod, setUploadMethod] = useState('photo')
+  const [extractedCourses, setExtractedCourses] = useState(null)
+
+  const handleUploadComplete = (data) => {
+    setExtractedCourses(data.courses || [])
+    // TODO: Show CourseReviewTable component
+    console.log('Upload complete:', data)
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -225,18 +233,7 @@ function TranscriptTab() {
 
         {/* Upload Content */}
         {uploadMethod === 'photo' ? (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-            <div className="text-6xl mb-4">📤</div>
-            <h4 className="text-xl font-sans font-bold text-primary mb-2">
-              Take or Upload a Photo
-            </h4>
-            <p className="text-primary-light mb-6">
-              We'll automatically extract your course information using OCR technology
-            </p>
-            <button className="btn-primary">
-              Choose File
-            </button>
-          </div>
+          <TranscriptUploader onUploadComplete={handleUploadComplete} />
         ) : (
           <div className="space-y-4">
             <div>

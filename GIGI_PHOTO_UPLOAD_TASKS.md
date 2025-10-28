@@ -11,7 +11,6 @@
 ### Features Required:
 - Drag & drop zone for file upload
 - Click to browse files
-- Camera access button (mobile)
 - Image preview before upload
 - File validation (only images: JPG, PNG, PDF)
 - Upload progress indicator
