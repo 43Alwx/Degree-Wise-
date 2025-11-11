@@ -26,22 +26,131 @@ model User {
 
 model Course {
   id            String   @id @default(cuid())
-  code          String   @unique // e.g., "CS 1050"
+  code          String   @unique // e.g., "CS1050"
   name          String   // e.g., "Computer Science I"
   credits       Int      @default(3)
   description   String?
+  category      String?  // e.g., "Core CS", "Mathematics", "Ancillary"
+
+  // Static offering information (from catalog)
   offeredFall   Boolean  @default(true)
   offeredSpring Boolean  @default(true)
   offeredSummer Boolean  @default(false)
+
+  // Additional flags
+  isSeniorExperience Boolean @default(false)
+  isElective        Boolean @default(false)
+  alternativeTo     String? // e.g., "COMM1100" for COMM1010
+  scienceGroup      String? // For science courses
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  prerequisites     Prerequisite[] @relation("CoursePrerequisites")
-  prerequisiteFor   Prerequisite[] @relation("PrerequisiteFor")
-  completedCourses  CompletedCourse[]
-  requirementCourses RequirementCourse[]
+  prerequisites       Prerequisite[] @relation("CoursePrerequisites")
+  prerequisiteFor     Prerequisite[] @relation("PrerequisiteFor")
+  completedCourses    CompletedCourse[]
+  requirementCourses  RequirementCourse[]
+  courseOfferings     CourseOffering[] // Live offerings per term
 
   @@index([code])
+  @@index([category])
+}
+
+// Represents a course offering in a specific term (e.g., CS1050 in Spring 2026)
+model CourseOffering {
+  id                  String   @id @default(cuid())
+  courseId            String
+  termCode            String   // e.g., "202630" for Spring 2026
+  termDescription     String   // e.g., "Spring 2026"
+
+  // Availability summary
+  isOffered           Boolean  @default(true)
+  availabilityStatus  String   // "available", "limited", "full", "not_offered"
+  totalSections       Int      @default(0)
+  totalSeatsAvailable Int      @default(0)
+  totalCapacity       Int      @default(0)
+
+  scrapedAt           DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  course              Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sections            CourseSection[]
+
+  @@unique([courseId, termCode])
+  @@index([termCode])
+  @@index([availabilityStatus])
+}
+
+// Individual course sections (e.g., CS1050-001, CS1050-002)
+model CourseSection {
+  id                String   @id @default(cuid())
+  offeringId        String
+
+  // Section identification
+  crn               String   // Course Reference Number
+  sectionNumber     String   // e.g., "001", "002"
+
+  // Enrollment data
+  currentEnrollment Int      @default(0)
+  maximumEnrollment Int      @default(0)
+  seatsAvailable    Int      @default(0)
+  waitlistAvailable Int      @default(0)
+  waitlistCapacity  Int      @default(0)
+
+  // Delivery method
+  instructionalMethod String? // e.g., "In Person", "Synchronous Online"
+  campus              String? // e.g., "Main", "Online"
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  offering          CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  instructors       Instructor[]
+  schedules         Schedule[]
+
+  @@unique([offeringId, crn])
+  @@index([crn])
+}
+
+// Instructors teaching sections
+model Instructor {
+  id        String   @id @default(cuid())
+  sectionId String
+  name      String
+  email     String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  section   CourseSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId])
+  @@index([email])
+}
+
+// Meeting schedules for sections
+model Schedule {
+  id          String   @id @default(cuid())
+  sectionId   String
+
+  // Meeting days and times
+  days        String   // e.g., "MW", "TR"
+  time        String   // e.g., "1400 - 1550"
+  startTime   String?  // e.g., "1400"
+  endTime     String?  // e.g., "1550"
+
+  // Location
+  building    String?  // e.g., "AES"
+  room        String?  // e.g., "210"
+  buildingDescription String? // e.g., "Aerospace and Engineering Sci."
+  campus      String?  // e.g., "M" for Main
+  meetingType String?  // e.g., "CLAS", "ONL"
+
+  createdAt   DateTime @default(now())
+
+  section     CourseSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId])
 }
 
 model Prerequisite {
