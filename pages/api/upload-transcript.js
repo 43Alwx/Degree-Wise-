@@ -4,7 +4,7 @@ import path from 'path'
 import { uploadToStorage } from '../../lib/supabase'
 import { extractTextFromImage, parseTranscriptText, matchCourses } from '../../lib/ocrProcessor'
 import { generateRecommendations, calculateDegreeProgress, recommendNextSemester } from '../../lib/recommendationEngine'
-import prisma from '../../lib/prisma'
+import { prisma } from '../../lib/prisma'
 
 export const config = {
   api: {
@@ -55,20 +55,55 @@ export default async function handler(req, res) {
     const { url: imageUrl } = await uploadToStorage(
       fileBuffer,
       'transcripts',
-      fileName
+      fileName,
+      imageFile.mimetype || 'image/jpeg' // Pass the actual MIME type
     )
 
     console.log('File uploaded:', imageUrl)
 
-    // Step 2: Run OCR
-    console.log('Running OCR...')
-    const extractedText = await extractTextFromImage(tempFilePath)
-    console.log('OCR completed, extracted text length:', extractedText.length)
+    // Step 2: Run OCR/Text Extraction
+    console.log('Extracting text from file...')
+    let extractedText = ''
+
+    if (imageFile.mimetype === 'application/pdf') {
+      // Handle PDF with pdfjs-dist (webpack-friendly)
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+      const pdfBuffer = await fs.readFile(tempFilePath)
+
+      // Convert Buffer to Uint8Array (required by pdfjs-dist)
+      const uint8Array = new Uint8Array(pdfBuffer)
+
+      // Load PDF document
+      const loadingTask = pdfjsLib.getDocument({ data: uint8Array })
+      const pdf = await loadingTask.promise
+
+      // Extract text from all pages
+      const textPages = []
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum)
+        const textContent = await page.getTextContent()
+        const pageText = textContent.items.map(item => item.str).join(' ')
+        textPages.push(pageText)
+      }
+
+      extractedText = textPages.join('\n')
+    } else {
+      // Handle images with Tesseract
+      extractedText = await extractTextFromImage(tempFilePath)
+    }
+
+    console.log('Text extraction completed, extracted text length:', extractedText.length)
+    console.log('===== EXTRACTED TEXT SAMPLE (first 1000 chars) =====')
+    console.log(extractedText.substring(0, 1000))
+    console.log('===== END SAMPLE =====')
 
     // Step 3: Parse transcript
     console.log('Parsing transcript...')
     const extractedCourses = parseTranscriptText(extractedText)
     console.log('Extracted courses:', extractedCourses.length)
+    if (extractedCourses.length > 0) {
+      console.log('Sample extracted course:', extractedCourses[0])
+    }
 
     // Step 4: Match with database courses
     console.log('Matching courses with database...')
@@ -86,17 +121,8 @@ export default async function handler(req, res) {
     // TODO: Replace with actual auth session
     const userId = fields.userId?.[0] || 'demo-user-id'
 
-    // Ensure user exists (create demo user if needed)
-    let user = await prisma.user.findUnique({ where: { id: userId } })
-    if (!user && userId === 'demo-user-id') {
-      user = await prisma.user.create({
-        data: {
-          id: 'demo-user-id',
-          email: 'demo@example.com',
-          name: 'Demo User'
-        }
-      })
-    }
+    // Ensure user exists - always use demo-user-id for now
+    console.log('Looking up user:', userId)
 
     // Step 6: Save matched courses to database
     console.log('Saving completed courses to database...')
@@ -110,6 +136,9 @@ export default async function handler(req, res) {
             userId: userId,
             courseId: course.courseId
           }
+        },
+        include: {
+          course: true
         }
       })
 

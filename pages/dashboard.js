@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import TranscriptUploader from '../components/TranscriptUploader'
+import dynamic from 'next/dynamic'
+
+const TranscriptUploader = dynamic(() => import('../components/TranscriptUploader'), { ssr: false })
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('progress')

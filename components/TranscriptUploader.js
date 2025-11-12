@@ -11,6 +11,7 @@ export default function TranscriptUploader({ onUploadComplete }) {
   const [success, setSuccess] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [dragActive, setDragActive] = useState(false)
+  const [results, setResults] = useState(null)
 
   const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
   const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -116,6 +117,7 @@ export default function TranscriptUploader({ onUploadComplete }) {
       }
 
       setSuccess(true)
+      setResults(data) // Store the API response for display
       setTimeout(() => {
         if (onUploadComplete) {
           onUploadComplete(data.courses || [])
@@ -304,6 +306,150 @@ export default function TranscriptUploader({ onUploadComplete }) {
       {success && (
         <div className="mt-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           Upload successful! Processing your transcript...
+        </div>
+      )}
+
+      {/* Results Display */}
+      {results && (
+        <div className="mt-6 space-y-6">
+          {/* Summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-lg mb-2">Processing Complete</h3>
+            <p className="text-gray-700">{results.message}</p>
+          </div>
+
+          {/* Matched Courses */}
+          {results.courses && results.courses.matched > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-3">
+                Matched Courses ({results.courses.matched})
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                These courses have been added to your completed courses list.
+              </p>
+            </div>
+          )}
+
+          {/* Unmatched Courses */}
+          {results.unmatchedCourses && results.unmatchedCourses.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-3">
+                Unmatched Courses ({results.unmatchedCourses.length})
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                These courses could not be matched to your degree requirements. They may be general education or elective courses.
+              </p>
+              <div className="space-y-2">
+                {results.unmatchedCourses.map((course, index) => (
+                  <div key={index} className="bg-white p-3 rounded border border-yellow-300">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{course.code}</p>
+                        <p className="text-sm text-gray-600">{course.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{course.grade}</p>
+                        <p className="text-sm text-gray-500">{course.credits} credits</p>
+                      </div>
+                    </div>
+                    {course.semester !== 'Unknown' && (
+                      <p className="text-xs text-gray-500 mt-1">{course.semester}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Degree Progress */}
+          {results.progress && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-3">Degree Progress</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-blue-50 rounded">
+                  <p className="text-2xl font-bold text-blue-600">
+                    {results.progress.totalCredits || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Credits Earned</p>
+                </div>
+                <div className="text-center p-3 bg-green-50 rounded">
+                  <p className="text-2xl font-bold text-green-600">
+                    {results.progress.gpa ? results.progress.gpa.toFixed(2) : 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600">GPA</p>
+                </div>
+                <div className="text-center p-3 bg-purple-50 rounded">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {results.progress.percentComplete || 0}%
+                  </p>
+                  <p className="text-sm text-gray-600">Complete</p>
+                </div>
+                <div className="text-center p-3 bg-orange-50 rounded">
+                  <p className="text-2xl font-bold text-orange-600">
+                    {results.progress.creditsRemaining || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Credits Remaining</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Course Recommendations */}
+          {results.recommendations && results.recommendations.nextSemester && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-3">
+                Recommended Courses for Next Semester
+              </h3>
+              {results.recommendations.nextSemester.length > 0 ? (
+                <div className="space-y-2">
+                  {results.recommendations.nextSemester.map((rec, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded border border-gray-200">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{rec.code} - {rec.name}</p>
+                          <p className="text-sm text-gray-600">{rec.credits} credits</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                            {rec.reason}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600">No recommendations available for next semester.</p>
+              )}
+            </div>
+          )}
+
+          {/* Available Courses Summary */}
+          {results.recommendations && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2">Course Availability Summary</h3>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-xl font-bold text-green-600">
+                    {results.recommendations.available || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Available</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-600">
+                    {results.recommendations.blocked || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Blocked</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-blue-600">
+                    {results.recommendations.completed || 0}
+                  </p>
+                  <p className="text-sm text-gray-600">Completed</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
