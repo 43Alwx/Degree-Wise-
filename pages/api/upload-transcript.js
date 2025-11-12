@@ -1,5 +1,10 @@
-// API endpoint for transcript upload
-// This is a placeholder - will be implemented with actual OCR and storage logic
+import formidable from 'formidable'
+import { promises as fs } from 'fs'
+import path from 'path'
+import { uploadToStorage } from '../../lib/supabase'
+import { extractTextFromImage, parseTranscriptText, matchCourses } from '../../lib/ocrProcessor'
+import { generateRecommendations, calculateDegreeProgress, recommendNextSemester } from '../../lib/recommendationEngine'
+import prisma from '../../lib/prisma'
 
 export const config = {
   api: {
@@ -16,133 +21,211 @@ export default async function handler(req, res) {
     })
   }
 
+  let tempFilePath = null
+
   try {
-    // TODO: Parse multipart form data (use formidable or busboy)
-    // TODO: Validate file type and size
-    // TODO: Upload to storage (Supabase Storage/Vercel Blob)
-    // TODO: Run OCR on the image
-    // TODO: Extract course data
-    // TODO: Store in database
-
-    // PLACEHOLDER: Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate processing
-
-    // Mock extracted course data
-    const mockCourses = [
-      {
-        code: 'CS1050',
-        name: 'Computer Science I',
-        semester: 'Fall 2023',
-        grade: 'A',
-        credits: 4
-      },
-      {
-        code: 'MTH1410',
-        name: 'Calculus I',
-        semester: 'Fall 2023',
-        grade: 'B+',
-        credits: 4
-      },
-      {
-        code: 'ENG1020',
-        name: 'English Composition',
-        semester: 'Fall 2023',
-        grade: 'A-',
-        credits: 3
-      },
-      {
-        code: 'CS2050',
-        name: 'Computer Science II',
-        semester: 'Spring 2024',
-        grade: 'A',
-        credits: 4
-      },
-      {
-        code: 'MTH2420',
-        name: 'Discrete Mathematics',
-        semester: 'Spring 2024',
-        grade: 'B',
-        credits: 3
+    // Parse multipart form data
+    const form = formidable({
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      allowEmptyFiles: false,
+      filter: function ({ mimetype }) {
+        // Accept only images and PDFs
+        return mimetype && (mimetype.includes('image') || mimetype.includes('pdf'))
       }
-    ]
+    })
+
+    const [fields, files] = await form.parse(req)
+    const imageFile = files.image?.[0]
+
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        error: 'No image file provided'
+      })
+    }
+
+    tempFilePath = imageFile.filepath
+
+    // Step 1: Upload to Supabase Storage
+    console.log('Uploading to Supabase Storage...')
+    const timestamp = Date.now()
+    const fileName = `transcripts/${timestamp}-${imageFile.originalFilename || 'transcript.jpg'}`
+
+    const fileBuffer = await fs.readFile(tempFilePath)
+    const { url: imageUrl } = await uploadToStorage(
+      fileBuffer,
+      'transcripts',
+      fileName
+    )
+
+    console.log('File uploaded:', imageUrl)
+
+    // Step 2: Run OCR
+    console.log('Running OCR...')
+    const extractedText = await extractTextFromImage(tempFilePath)
+    console.log('OCR completed, extracted text length:', extractedText.length)
+
+    // Step 3: Parse transcript
+    console.log('Parsing transcript...')
+    const extractedCourses = parseTranscriptText(extractedText)
+    console.log('Extracted courses:', extractedCourses.length)
+
+    // Step 4: Match with database courses
+    console.log('Matching courses with database...')
+    const allCourses = await prisma.course.findMany({
+      include: {
+        prerequisites: true,
+        prerequisiteFor: true
+      }
+    })
+
+    const { matched, unmatched } = matchCourses(extractedCourses, allCourses)
+    console.log('Matched courses:', matched.length, 'Unmatched:', unmatched.length)
+
+    // Step 5: Get userId from session/query (for now, use from request body or create demo user)
+    // TODO: Replace with actual auth session
+    const userId = fields.userId?.[0] || 'demo-user-id'
+
+    // Ensure user exists (create demo user if needed)
+    let user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user && userId === 'demo-user-id') {
+      user = await prisma.user.create({
+        data: {
+          id: 'demo-user-id',
+          email: 'demo@example.com',
+          name: 'Demo User'
+        }
+      })
+    }
+
+    // Step 6: Save matched courses to database
+    console.log('Saving completed courses to database...')
+    const savedCourses = []
+
+    for (const course of matched) {
+      // Check if already exists
+      const existing = await prisma.completedCourse.findUnique({
+        where: {
+          userId_courseId: {
+            userId: userId,
+            courseId: course.courseId
+          }
+        }
+      })
+
+      if (!existing) {
+        const saved = await prisma.completedCourse.create({
+          data: {
+            userId: userId,
+            courseId: course.courseId,
+            semester: course.semester,
+            grade: course.grade
+          },
+          include: {
+            course: true
+          }
+        })
+        savedCourses.push(saved)
+      } else {
+        savedCourses.push(existing)
+      }
+    }
+
+    // Step 7: Generate recommendations
+    console.log('Generating recommendations...')
+    const completedCourseIds = savedCourses.map(c => c.courseId)
+    const recommendations = generateRecommendations(completedCourseIds, allCourses)
+
+    // Get current term offerings
+    const currentTermOfferings = await prisma.courseOffering.findMany({
+      where: {
+        termDescription: 'Spring 2026' // TODO: Make dynamic
+      },
+      include: {
+        course: true
+      }
+    })
+
+    const nextSemesterRecommendations = recommendNextSemester(
+      recommendations.available,
+      currentTermOfferings,
+      4
+    )
+
+    // Calculate degree progress
+    const progress = calculateDegreeProgress(
+      savedCourses.map(sc => ({
+        credits: sc.course.credits,
+        grade: sc.grade
+      }))
+    )
+
+    // Cleanup temp file
+    if (tempFilePath) {
+      await fs.unlink(tempFilePath).catch(() => {})
+    }
 
     return res.status(200).json({
       success: true,
-      courses: mockCourses,
-      imageUrl: 'https://placeholder.example.com/transcript.jpg',
-      message: 'Transcript processed successfully (using mock data)'
+      imageUrl,
+      extractedText: extractedText.substring(0, 500), // First 500 chars for debugging
+      courses: {
+        matched: matched.length,
+        unmatched: unmatched.length,
+        saved: savedCourses.length
+      },
+      recommendations: {
+        completed: recommendations.completed.length,
+        available: recommendations.available.length,
+        blocked: recommendations.blocked.length,
+        nextSemester: nextSemesterRecommendations
+      },
+      progress,
+      unmatchedCourses: unmatched, // So user can manually review
+      message: `Successfully processed ${matched.length} courses. ${unmatched.length} courses could not be matched.`
     })
 
   } catch (error) {
     console.error('Upload error:', error)
+
+    // Cleanup temp file on error
+    if (tempFilePath) {
+      await fs.unlink(tempFilePath).catch(() => {})
+    }
+
     return res.status(500).json({
       success: false,
-      error: 'Failed to process transcript. Please try again.'
+      error: error.message || 'Failed to process transcript. Please try again.'
     })
   }
 }
 
 /*
-TODO: Implementation checklist for Alex
+IMPLEMENTATION NOTES:
 
-1. Install dependencies:
-   npm install formidable
-   OR
-   npm install busboy
+✅ Phase 1: File Upload & Storage - COMPLETE
+- Uses formidable to parse multipart form data
+- Validates file type (images and PDFs only) and size (10MB max)
+- Uploads to Supabase Storage bucket 'transcripts'
 
-2. File upload handling:
-   - Parse multipart/form-data
-   - Save file temporarily or to storage
+✅ Phase 2: OCR Processing - COMPLETE
+- Uses Tesseract.js for text extraction
+- Processes images and extracts text content
 
-3. Storage setup (choose one):
-   Option A - Supabase Storage:
-   - Create bucket in Supabase
-   - Upload file using @supabase/supabase-js
+✅ Phase 3: Course Matching - COMPLETE
+- Parses transcript text for course codes, grades, semesters
+- Matches extracted courses against database courses
+- Saves matched courses to CompletedCourse model
 
-   Option B - Vercel Blob:
-   - npm install @vercel/blob
-   - Use put() method to upload
+✅ Phase 4: Recommendations - COMPLETE
+- Generates available/blocked course lists based on prerequisites
+- Recommends courses for next semester based on offerings
+- Calculates degree progress and GPA
 
-4. OCR Integration (Phase 2):
-   Option A - Tesseract.js (free, runs on server):
-   - npm install tesseract.js
-
-   Option B - Google Cloud Vision API (paid, more accurate):
-   - Set up GCP credentials
-   - npm install @google-cloud/vision
-
-   Option C - AWS Textract (paid):
-   - Set up AWS credentials
-   - npm install @aws-sdk/client-textract
-
-5. Data extraction:
-   - Parse OCR text to extract:
-     * Course codes (e.g., "CS1050")
-     * Course names
-     * Semesters
-     * Grades
-     * Credits
-   - Use regex patterns or NLP
-
-6. Database storage:
-   - Save to Prisma database
-   - Link to user account
-
-Example implementation with formidable:
-
-import formidable from 'formidable'
-
-export default async function handler(req, res) {
-  const form = formidable({ multiples: false })
-
-  const [fields, files] = await form.parse(req)
-  const imageFile = files.image[0]
-
-  // Upload to storage
-  // Run OCR
-  // Extract data
-  // Save to DB
-
-  return res.json({ success: true, courses: [...] })
-}
+TODO for production:
+1. Set up Supabase Storage bucket named 'transcripts'
+2. Add environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+3. Integrate with authentication (replace demo-user-id with actual session)
+4. Improve OCR accuracy for different transcript formats
+5. Add manual correction interface for unmatched courses
 */

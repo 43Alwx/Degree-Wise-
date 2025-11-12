@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+
 import ImagePreview from './ImagePreview'
 
 export default function TranscriptUploader({ onUploadComplete }) {
@@ -38,11 +39,6 @@ export default function TranscriptUploader({ onUploadComplete }) {
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
     setSuccess(false)
-
-    // For images, show preview component; for PDFs, go straight to upload
-    if (file.type.startsWith('image/')) {
-      setShowPreview(true)
-    }
   }
 
   // Handle drag events
@@ -138,33 +134,9 @@ export default function TranscriptUploader({ onUploadComplete }) {
   const handleClear = () => {
     setSelectedFile(null)
     setPreviewUrl(null)
-    setShowPreview(false)
     setError(null)
     setSuccess(false)
     setUploadProgress(0)
-  }
-
-  // Handle confirm from ImagePreview
-  const handleConfirmPreview = () => {
-    setShowPreview(false)
-    // Proceed to upload
-    handleUpload()
-  }
-
-  // Handle retake from ImagePreview
-  const handleRetake = () => {
-    handleClear()
-  }
-
-  // Show ImagePreview if image is selected
-  if (showPreview && previewUrl) {
-    return (
-      <ImagePreview
-        imageUrl={previewUrl}
-        onConfirm={handleConfirmPreview}
-        onRetake={handleRetake}
-      />
-    )
   }
 
   return (
