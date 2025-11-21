@@ -11,7 +11,7 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard - CodePath</title>
+        <title>Dashboard - DegreeWise</title>
       </Head>
 
       <div className="min-h-screen">
@@ -20,9 +20,9 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-5 py-4 flex justify-between items-center">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">CP</span>
+                <span className="text-white font-bold text-xl">DW</span>
               </div>
-              <h1 className="text-2xl font-display text-primary">CodePath</h1>
+              <h1 className="text-2xl font-display text-primary">DegreeWise</h1>
             </Link>
             <nav className="flex gap-6 items-center">
               <Link href="/courses" className="text-primary hover:text-accent transition-colors">
