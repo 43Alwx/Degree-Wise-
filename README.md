@@ -1,354 +1,346 @@
-# CodePath 🎓
+# DegreeWise
 
 Smart graduation planner for Computer Science students at MSU Denver. Plan your path to graduation with intelligent course recommendations and timeline scenarios.
 
-## 🎯 What It Does
+---
 
-CodePath helps CS students at MSU Denver:
-- **Track Progress**: See what courses you've completed and what's remaining
-- **Upload Transcripts**: Photo upload or manual entry of completed courses
-- **Check Prerequisites**: Automatically determines which courses you can take
-- **Plan Timeline**: Generate graduation scenarios based on 1-4 courses per semester
-- **Get Recommendations**: See exactly what courses are available next semester
-- **Degree Audit**: Full graduation eligibility check with GPA tracking
+## Overview
 
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 15.5.4, React 19, Tailwind CSS 4
-- **Backend**: Next.js API Routes with security middleware
-- **Database**: PostgreSQL (Supabase) with Prisma ORM
-- **Security**: Rate limiting, input sanitization, CORS
-- **Code Quality**: ESLint with pre-commit hooks (Husky)
-- **Hosting**: Vercel
+**DegreeWise** is a web application designed specifically for Computer Science students at Metropolitan State University of Denver (MSU Denver). It helps students track their academic progress, plan their path to graduation, and make informed decisions about course selection.
 
 ---
 
-## 🚀 Getting Started
+## What It Does
+
+DegreeWise provides six core functionalities:
+
+### 1. Progress Tracking
+- Visualizes completed credits vs. total required (120 credits)
+- Shows progress across degree requirement categories (Core CS, Electives, Math, General Education)
+- Displays recently completed courses
+
+### 2. Transcript Upload
+- **Photo Upload**: Take a photo or drag-and-drop an image of your transcript
+- **PDF Support**: Upload PDF transcripts directly
+- **Manual Entry**: Enter completed courses one at a time
+- Uses **Tesseract.js OCR** to extract course information from images
+
+### 3. Smart Course Matching
+- Automatically matches extracted courses to MSU Denver's CS curriculum
+- Identifies unmatched courses (general education, electives)
+- Validates course codes and credits
+
+### 4. Prerequisite Checking
+- Determines which courses you're eligible to take
+- Blocks courses where prerequisites aren't met
+- Shows availability status for each course
+
+### 5. Graduation Timeline
+- Generates multiple graduation scenarios:
+  - 4 courses/semester: Graduate in ~8 semesters
+  - 3 courses/semester: Graduate in ~11 semesters
+  - 2 courses/semester: Graduate in ~15 semesters
+  - 1 course/semester: Graduate in ~30 semesters
+
+### 6. Course Recommendations
+- Suggests courses for next semester based on:
+  - Completed prerequisites
+  - Semester availability (Fall/Spring/Summer)
+  - Degree requirements priority
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Frontend** | Next.js | 15.5.4 |
+| **UI Framework** | React | 19.2.0 |
+| **Styling** | Tailwind CSS | 4.1.14 |
+| **Backend** | Next.js API Routes | - |
+| **Database** | PostgreSQL (Supabase) | - |
+| **ORM** | Prisma | 6.17.0 |
+| **OCR** | Tesseract.js | 6.0.1 |
+| **File Handling** | Formidable | 3.5.4 |
+| **HTTP Client** | Axios | 1.13.2 |
+| **Web Scraping** | Puppeteer | 24.29.1 |
+| **Code Quality** | ESLint + Husky | 9.38.0 / 9.1.7 |
+| **Hosting** | Vercel | - |
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+ installed
+- Node.js 18+
 - Git
-- PostgreSQL database (Supabase recommended, free tier)
+- PostgreSQL database (Supabase free tier recommended)
 
 ### Installation
 
-1. **Clone the repository**
 ```bash
-git clone https://github.com/43Alwx/360.git
+# 1. Clone the repository
+git clone https://github.com/43Alwx/Degree-Wise-.git
 cd Degree-Wise-
-```
 
-2. **Install dependencies**
-```bash
+# 2. Install dependencies
 npm install
-```
 
-3. **Set up environment variables**
-
-Copy the example file:
-```bash
+# 3. Set up environment variables
 cp .env.example .env
-```
+# Edit .env with your credentials:
+# DATABASE_URL="postgresql://postgres:PASSWORD@YOUR_SUPABASE_URL:5432/postgres"
+# NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+# NEXTAUTH_URL="http://localhost:3002"
 
-Edit `.env` with your credentials:
-```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@YOUR_SUPABASE_URL:5432/postgres"
-NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
-NEXTAUTH_URL="http://localhost:3002"
-```
+# 4. Set up the database
+npx prisma generate      # Generate Prisma client
+npx prisma db push       # Push schema to database
+node prisma/seed.js      # Seed MSU Denver CS courses
+node prisma/addTestUser.js  # (Optional) Create test user
 
-4. **Set up the database**
-
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Push schema to database
-npx prisma db push
-
-# Seed with MSU Denver CS courses
-node prisma/seed.js
-
-# (Optional) Create test user
-node prisma/addTestUser.js
-```
-
-5. **Run the development server**
-```bash
+# 5. Run the development server
 npm run dev
 ```
 
 Open [http://localhost:3002](http://localhost:3002) in your browser.
 
-6. **View database (optional)**
-```bash
-npx prisma studio
-# Opens at http://localhost:5555
-```
-
 ---
 
-
-### Initial Setup (First Time)
-
-```bash
-# Clone the repo
-git clone https://github.com/43Alwx/360.git
-cd Degree-Wise-
-
-# Install dependencies
-npm install
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your database credentials
-```
-
-### Daily Workflow
-
-**Before starting new work each day:**
-```bash
-
-# Get latest changes
-git fetch 
-
-git pull
-
-# Resolve conflicts if any, then:
-git add .
-git commit -m "Merge main into feature branch"
-git push
-```
-
-#### . **Make Your Changes**
-
-Work on your code, then check what changed:
-```bash
-# See what files you modified
-git status
-
-# See the actual changes
-git diff
-```
-
-#### . **Commit Your Changes**
-
-Our repo has **automatic linting** - it checks your code before each commit!
-
-```bash
-# Stage your changes
-git add .
-
-# Commit (linting runs automatically!)
-git commit -m "Add course API endpoint with security"
-
-# Push the code to github (main)
-git push main 
-```
-
-
-
-### Common Git Commands
-
-```bash
-# See current branch
-git branch
-
-# See all branches
-git branch -a
-
-# Switch branches
-git checkout branch-name
-
-# Delete a branch (after merged)
-git branch -d branch-name
-
-# Discard changes to a file
-git checkout -- filename
-
-# Undo last commit (keep changes)
-git reset --soft HEAD~1
-
-# See commit history
-git log --oneline
-
-# See who changed what
-git blame filename
-```
-
----
-
-## 🔧 Development Commands
+## Development Commands
 
 ### Running the App
 
-```bash
-npm run dev          # Start development server (localhost:3002)
-npm run build        # Build for production
-npm start            # Run production build
-```
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server (localhost:3002) |
+| `npm run build` | Build for production |
+| `npm start` | Run production build |
 
 ### Code Quality
 
-```bash
-npm run lint         # Check code for errors
-npm run lint:fix     # Auto-fix linting issues
-```
+| Command | Description |
+|---------|-------------|
+| `npm run lint` | Check code for errors |
+| `npm run lint:fix` | Auto-fix linting issues |
 
-**Note**: Linting runs automatically before each commit via Husky!
+**Note**: Linting runs automatically before each commit via Husky pre-commit hooks.
 
-### Database
+### Database Operations
 
-```bash
-npx prisma studio              # Visual database browser
-npx prisma generate            # Regenerate Prisma client
-npx prisma db push             # Push schema changes to database
-node prisma/seed.js            # Seed courses
-node prisma/addTestUser.js     # Create test user
-```
+| Command | Description |
+|---------|-------------|
+| `npx prisma studio` | Visual database browser (localhost:5555) |
+| `npx prisma generate` | Regenerate Prisma client |
+| `npx prisma db push` | Push schema changes to database |
+| `npx prisma migrate reset` | Reset database (deletes all data) |
+| `node prisma/seed.js` | Seed courses data |
+| `node prisma/addTestUser.js` | Create test user |
 
 ### Security
 
-```bash
-npm audit                      # Check for vulnerabilities
-npm audit fix                  # Auto-fix vulnerabilities
-git status                     # Verify .env not staged
-```
+| Command | Description |
+|---------|-------------|
+| `npm audit` | Check for vulnerabilities |
+| `npm audit fix` | Auto-fix vulnerabilities |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-/
-├── pages/
-│   ├── index.js                      # Homepage
-│   ├── dashboard.js                  # Main dashboard
-│   ├── courses.js                    # Course catalog
-│   ├── api-test.js                   # API testing page
-│   └── api/                          # API routes
+DegreeWise/
+├── pages/                          # Next.js pages
+│   ├── index.js                    # Homepage/landing page
+│   ├── dashboard.js                # Main dashboard with tabs
+│   ├── courses.js                  # Course catalog
+│   ├── api-test.js                 # API testing page
+│   ├── _app.js                     # App wrapper
+│   └── api/                        # API endpoints
 │       ├── courses/
-│       │   ├── index.js              # GET all courses
-│       │   └── add-completed.js      # POST add completed courses
-│       ├── progress/[userId].js      # GET user progress
-│       ├── timeline/[userId].js      # GET graduation timeline
+│       │   ├── index.js            # GET all courses
+│       │   └── add-completed.js    # POST add completed courses
+│       ├── courses.js              # Course operations
+│       ├── upload-transcript.js    # POST transcript OCR processing
+│       ├── progress/[userId].js    # GET user progress
+│       ├── timeline/[userId].js    # GET graduation timeline
 │       ├── available-courses/[userId].js  # GET available courses
-│       └── degree-audit/[userId].js  # GET full degree audit
-├── components/                       # React components (Gigi's work)
-├── lib/
-│   ├── prisma.js                    # Prisma client
-│   ├── security.js                  # Security middleware ✅
-│   ├── prerequisiteChecker.js       # Prerequisite logic
-│   ├── timelineCalculator.js        # Timeline generation
-│   ├── gpaCalculator.js             # GPA calculations ✅
-│   ├── degreeAudit.js               # Degree audit system ✅
-│   └── courseValidator.js           # Input validation ✅
-├── data/
-│   └── msuDenverCS.js               # MSU Denver CS curriculum
-├── prisma/
-│   ├── schema.prisma                # Database schema
-│   ├── seed.js                      # Database seeding ✅
-│   ├── addTestUser.js               # Test data ✅
-│   └── migrations/                  # Database migrations
-├── .husky/                          # Git hooks
-│   └── pre-commit                   # Auto-lint before commits ✅
-├── .env                             # Environment variables (NEVER COMMIT!)
-├── .env.example                     # Template for .env ✅
-├── .gitignore                       # Files to ignore in Git ✅
-├── eslint.config.mjs                # Linting configuration ✅
-├── SECURITY.md                      # Security guide ✅
-├── API_DOCUMENTATION.md             # API reference ✅
-└── GIGI_PHOTO_UPLOAD_TASKS.md       # Frontend tasks ✅
+│       └── degree-audit/[userId].js       # GET full degree audit
+│
+├── components/                     # React components
+│   ├── TranscriptUploader.js       # Drag-drop file upload with OCR
+│   ├── ImagePreview.js             # Image preview component
+│   └── CourseReviewTable.js        # Course review/editing table
+│
+├── lib/                            # Business logic & utilities
+│   ├── prisma.js                   # Prisma client singleton
+│   ├── security.js                 # Security middleware (rate limiting, CORS)
+│   ├── ocrProcessor.js             # Tesseract OCR integration
+│   ├── courseValidator.js          # Input validation
+│   ├── prerequisiteChecker.js      # Prerequisite logic
+│   ├── timelineCalculator.js       # Timeline generation
+│   ├── gpaCalculator.js            # GPA calculations
+│   ├── degreeAudit.js              # Degree audit system
+│   ├── recommendationEngine.js     # Course recommendations
+│   └── supabase.js                 # Supabase client
+│
+├── data/                           # Static data
+│   ├── msuDenverCS.js              # MSU Denver CS curriculum
+│   └── msu-cs-degree-complete.json # Complete degree requirements
+│
+├── prisma/                         # Database
+│   ├── schema.prisma               # Database schema (12 models)
+│   ├── seed.js                     # Database seeding
+│   ├── addTestUser.js              # Test data creation
+│   └── migrations/                 # Database migrations
+│
+├── scripts/                        # Utility scripts
+│   ├── scrape-msu-courses-v2.js    # Course scraper
+│   ├── scrape-all-degree-courses.js
+│   ├── integrate-all-courses.js
+│   ├── import-to-database.js
+│   └── check-subjects.js
+│
+├── styles/
+│   └── globals.css                 # Global styles with Tailwind
+│
+├── .husky/                         # Git hooks
+│   └── pre-commit                  # Auto-lint before commits
+│
+├── Configuration Files
+│   ├── package.json
+│   ├── eslint.config.mjs
+│   ├── postcss.config.js
+│   ├── .env.example
+│   └── .gitignore
+│
+└── Documentation
+    ├── README.md
+    ├── API_DOCUMENTATION.md
+    ├── SECURITY.md
+    ├── QUICK_START.md
+    ├── SUPABASE_SETUP.md
+    └── TASKS.md
 ```
 
 ---
 
-## 📚 API Documentation
+## Database Schema
 
-See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for full API reference.
+The application uses **12 Prisma models**:
 
-### Quick API Reference
+| Model | Purpose |
+|-------|---------|
+| `User` | Student accounts |
+| `Course` | MSU Denver course catalog |
+| `CourseOffering` | Term-specific course offerings |
+| `CourseSection` | Individual sections (001, 002, etc.) |
+| `Instructor` | Section instructors |
+| `Schedule` | Meeting times and locations |
+| `Prerequisite` | Course prerequisite relationships |
+| `CompletedCourse` | User's completed courses |
+| `Requirement` | Degree requirement categories |
+| `RequirementCourse` | Courses that fulfill requirements |
+| `Timeline` | User's graduation scenarios |
 
-**Test User**: `test-user-123`
+---
 
-```bash
-# Get all courses
-curl http://localhost:3002/api/courses
+## API Endpoints
 
-# Get user progress
-curl http://localhost:3002/api/progress/test-user-123
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/courses` | GET | Get all courses |
+| `/api/courses/add-completed` | POST | Add completed courses |
+| `/api/upload-transcript` | POST | Upload & process transcript |
+| `/api/progress/[userId]` | GET | Get user progress |
+| `/api/timeline/[userId]` | GET | Get graduation timeline |
+| `/api/available-courses/[userId]` | GET | Get available courses |
+| `/api/degree-audit/[userId]` | GET | Full degree audit |
 
-# Get graduation timeline
-curl http://localhost:3002/api/timeline/test-user-123
-
-# Get available courses
-curl "http://localhost:3002/api/available-courses/test-user-123?semester=spring"
-
-# Full degree audit
-curl http://localhost:3002/api/degree-audit/test-user-123
-```
+**Test User ID**: `test-user-123`
 
 **Visual API Testing**: http://localhost:3002/api-test
 
+See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for full API reference.
+
 ---
 
-## 🔐 Security & Best Practices
+## Development Team
+
+### Alex (Backend Developer)
+
+**Completed Work:**
+- Database architecture & Prisma schema design
+- All 7 API endpoints implementation
+- Security middleware (rate limiting, input sanitization, CORS)
+- Business logic libraries:
+  - GPA Calculator
+  - Degree Audit System
+  - Prerequisite Checker
+  - Timeline Calculator
+  - Recommendation Engine
+- Database seeding with MSU Denver CS courses
+- Course scraping scripts
+- Upload transcript API with OCR integration
+
+### Gigi (Frontend Developer)
+
+**Completed Work:**
+- TranscriptUploader component with drag-drop functionality
+- ImagePreview component
+- CourseReviewTable component
+- Upload results UI with:
+  - Course matching display
+  - Progress statistics
+  - Recommendations display
+- Dashboard integration with APIs
+
+### Shared Responsibilities
+- User authentication (NextAuth.js) - In Progress
+- Deployment to Vercel - Pending
+- Testing & bug fixes - Ongoing
+
+---
+
+## Key Features Implementation
+
+### OCR Transcript Processing
+1. User uploads image/PDF via TranscriptUploader component
+2. Server receives file via Formidable
+3. Tesseract.js extracts text from image
+4. ocrProcessor.js parses course patterns (e.g., "CS 1050 Computer Science I A 4.00")
+5. Courses matched against database
+6. Progress calculated and recommendations generated
+7. Results displayed to user
+
+### Course Availability
+- Courses scraped from MSU Denver registration system
+- Live section data including:
+  - Instructor names
+  - Meeting times/days
+  - Room locations
+  - Seat availability
+
+---
+
+## Security Features
+
+- Rate limiting on API endpoints
+- Input sanitization
+- CORS configuration
+- Environment variable protection
+- Pre-commit linting hooks
 
 ### Environment Variables
 - **NEVER commit `.env`** to Git (already in `.gitignore`)
 - Use `.env.example` as template
 - Share credentials securely (1Password, not Slack/email)
 
-### Code Quality
-- Linting runs automatically before commits
-- Fix errors before pushing
-- Run `npm run lint` to check manually
-
-### Git Best Practices
-- Always work in feature branches
-- Pull latest `main` before starting new work
-- Write clear commit messages
-- Request code review before merging
-- Never force push to `main`
-
-### Security Checklist Before Deployment
-- [ ] Environment variables set in Vercel
-- [ ] Database URL using production database
-- [ ] `NEXTAUTH_SECRET` generated: `openssl rand -base64 32`
-- [ ] All API endpoints using `withSecurity()` middleware
-- [ ] Run `npm audit` (should be 0 vulnerabilities)
-
 See [SECURITY.md](./SECURITY.md) for full security guide.
 
 ---
 
-## 👥 Development Team
-
-**Alex & Gigi** - MSU Denver CS Students
-
-### Task Division
-
-#### 🔷 Alex (Backend)
-- ✅ Database setup & seeding
-- ✅ All API endpoints (6 total)
-- ✅ Security middleware
-- ✅ Business logic (GPA, degree audit, prerequisites)
-- ⏳ Upload transcript API endpoint
-
-#### 🔶 Gigi (Frontend)
-- ⏳ Component library
-- ⏳ Dashboard integration with APIs
-- ⏳ Transcript upload UI
-- ⏳ Course catalog improvements
-
-#### 🤝 Shared
-- ⏳ User authentication (NextAuth.js)
-- ⏳ Deployment to Vercel
-- ⏳ Testing & bug fixes
-
----
-
-## 🚀 Deployment
+## Deployment
 
 ### Deploy to Vercel
 
@@ -362,12 +354,10 @@ git push origin main
    - Import your GitHub repo
    - Vercel auto-detects Next.js
 
-3. **Add Environment Variables**
-
-In Vercel dashboard, add:
+3. **Add Environment Variables** in Vercel dashboard:
 ```
 DATABASE_URL=your_production_database_url
-NEXTAUTH_SECRET=generate_new_one_with_openssl
+NEXTAUTH_SECRET=generate_with_openssl
 NEXTAUTH_URL=https://your-domain.vercel.app
 ```
 
@@ -377,87 +367,36 @@ NEXTAUTH_URL=https://your-domain.vercel.app
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Database Issues
 ```bash
-# Reset database (WARNING: deletes all data)
-npx prisma migrate reset
-
-# Regenerate Prisma client
-npx prisma generate
-
-# Check database connection
-npx prisma db push
-```
-
-### Git Issues
-```bash
-# Undo last commit (keep changes)
-git reset --soft HEAD~1
-
-# Discard all local changes
-git reset --hard HEAD
-
-# Pull latest without merge conflicts
-git fetch origin
-git reset --hard origin/main
+npx prisma migrate reset    # Reset database (WARNING: deletes all data)
+npx prisma generate         # Regenerate Prisma client
+npx prisma db push          # Check database connection
 ```
 
 ### Linting Blocked Your Commit?
 ```bash
-# Fix linting errors
-npm run lint:fix
-
-# Try commit again
-git commit -m "your message"
-
-# Skip linting (NOT recommended)
-git commit -m "your message" --no-verify
+npm run lint:fix            # Fix linting errors
+git commit -m "your message"  # Try commit again
 ```
 
 ### Dev Server Issues
 ```bash
-# Kill any running servers
-pkill -f "next dev"
-
-# Clear Next.js cache
-rm -rf .next
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
+rm -rf .next                # Clear Next.js cache
+rm -rf node_modules && npm install  # Reinstall dependencies
 ```
 
 ---
 
-## 📝 Maintenance
-
-### Weekly Tasks
-```bash
-# Update dependencies
-npm outdated          # Check what's outdated
-npm update            # Update to latest
-
-# Security check
-npm audit             # Should be 0 vulnerabilities
-```
-
-### Monthly Tasks
-- Review and rotate API keys if needed
-- Check database size (Supabase dashboard)
-- Review error logs (Vercel dashboard)
-- Update dependencies: `npm update`
-
----
-
-## 📄 License
+## License
 
 ISC License - See LICENSE file for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - MSU Denver Computer Science Department
 - Course data based on MSU Denver 2023-2024 catalog
@@ -465,7 +404,7 @@ ISC License - See LICENSE file for details
 
 ---
 
-**CodePath** - Your Smart Graduation Planner 🎓
+**DegreeWise** - Your Smart Graduation Planner
 
 **Live**: TBD | **Docs**: [API Docs](./API_DOCUMENTATION.md) | **Security**: [Security Guide](./SECURITY.md)
 
